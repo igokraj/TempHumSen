@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "i2c.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -106,8 +107,9 @@ int main(void)
   MX_GPIO_Init();
   MX_I2C1_Init();
   MX_USART2_UART_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
-
+HAL_TIM_Base_Start_IT(&htim1);
 
 HAL_UART_Receive_IT(&huart2, uart_rcv_buffer, sizeof(uart_rcv_buffer));
   /* USER CODE END 2 */
@@ -216,6 +218,14 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     
     // Re-enable UART reception for the next command
     HAL_UART_Receive_IT(&huart2, uart_rcv_buffer, sizeof(uart_rcv_buffer));
+  }
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  if (htim->Instance == TIM1)
+  {
+HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
   }
 }
 /* USER CODE END 4 */
