@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "dma.h"
 #include "i2c.h"
 #include "tim.h"
 #include "usart.h"
@@ -56,13 +57,12 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-static bool system_active = false;
 static uint8_t uart_rcv_buffer[20];
 
-uint8_t buffer[50];
-uint8_t data[2];
-uint8_t temp_cmd = 0xE3; // Command to read temperature from HTU21D
-uint8_t hum_cmd = 0xE5;  // Command to read humidity from HTU21D
+uint8_t buffer[64];
+uint8_t data[3];  // MSB + LSB + CRC
+uint8_t temp_cmd = 0xE3;
+uint8_t hum_cmd = 0xE5;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -105,6 +105,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_I2C1_Init();
   MX_USART2_UART_Init();
   MX_TIM1_Init();
@@ -118,33 +119,31 @@ HAL_UART_Receive_IT(&huart2, uart_rcv_buffer, sizeof(uart_rcv_buffer));
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    if (system_active)
+{
+    if (HAL_I2C_Master_Transmit(&hi2c1, HTU21D_ADDR, &temp_cmd, 1, Timeout_delay) == HAL_OK)
     {
-      // Read temperature
-      if (HAL_I2C_Master_Transmit(&hi2c1, HTU21D_ADDR, &temp_cmd, 1, Timeout_delay) == HAL_OK)
-      {
-        HAL_Delay(50); // Wait for the sensor to process the command
-        if (HAL_I2C_Master_Receive(&hi2c1, HTU21D_ADDR, data, 2, Timeout_delay) == HAL_OK)
+        HAL_Delay(50);
+        if (HAL_I2C_Master_Receive(&hi2c1, HTU21D_ADDR, data, 3, Timeout_delay) == HAL_OK)
         {
-          int raw_temp = (data[0] << 8) | data[1];
-          float temperature = -46.85 + (175.72 * raw_temp / 65536.0);
+            int raw_temp = ((data[0] << 8) | data[1]) & 0xFFFC;  // maskuj bity statusowe
+            float temperature = -46.85f + (175.72f * raw_temp / 65536.0f);
 
-          if (HAL_I2C_Master_Transmit(&hi2c1, HTU21D_ADDR, &hum_cmd, 1, Timeout_delay) == HAL_OK)
-          {
-            HAL_Delay(50); // Wait for the sensor to process the command
-            if (HAL_I2C_Master_Receive(&hi2c1, HTU21D_ADDR, data, 2, Timeout_delay) == HAL_OK)
+            if (HAL_I2C_Master_Transmit(&hi2c1, HTU21D_ADDR, &hum_cmd, 1, Timeout_delay) == HAL_OK)
             {
-              int raw_hum = (data[0] << 8) | data[1];
-              float humidity = -6.0 + (125.0 * raw_hum / 65536.0);
+                HAL_Delay(50);
+                if (HAL_I2C_Master_Receive(&hi2c1, HTU21D_ADDR, data, 3, Timeout_delay) == HAL_OK)
+                {
+                    int raw_hum = ((data[0] << 8) | data[1]) & 0xFFFC;  // maskuj bity statusowe
+                    float humidity = -6.0f + (125.0f * raw_hum / 65536.0f);
 
-sprintf((char*)buffer, "Temp: %.2f C, Hum: %.2f %%\r\n", temperature, humidity);
-HAL_UART_Transmit(&huart2, buffer, strlen((char*)buffer), Timeout_delay);
-
-}
-}
+                    sprintf((char*)buffer, "Temp: %.2f C, Hum: %.2f %%\r\n", temperature, humidity);
+                    HAL_UART_Transmit(&huart2, buffer, strlen((char*)buffer), 500);
+                }
+            }
         }
-      }
     }
+  }
+      HAL_Delay(2000); // Wait before the next reading
     
     /* USER CODE END WHILE */
 
@@ -201,26 +200,6 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-  if (huart->Instance == USART2)
-  {
-    if (strncmp((char*)uart_rcv_buffer, "START", 5) == 0)
-    {
-      system_active = true;
-      HAL_UART_Transmit(&huart2, (uint8_t*)"System Activated\r\n", 18, Timeout_delay);
-    }
-    else if (strncmp((char*)uart_rcv_buffer, "STOP", 4) == 0)
-    {
-      system_active = false;
-      HAL_UART_Transmit(&huart2, (uint8_t*)"System Deactivated\r\n", 20, Timeout_delay);
-    }
-    
-    // Re-enable UART reception for the next command
-    HAL_UART_Receive_IT(&huart2, uart_rcv_buffer, sizeof(uart_rcv_buffer));
-  }
-}
-
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   if (htim->Instance == TIM1)
