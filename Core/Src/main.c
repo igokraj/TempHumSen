@@ -34,9 +34,14 @@
 #include "stm32f4xx_hal_gpio.h"
 #include "stm32f4xx_hal_rcc.h"
 #include "stdbool.h"
+#include "NanoEdgeAI.h"
+
+
 
 #define HTU21D_ADDR 0x40 << 1 // I2C address of the HTU21D sensor
 #define Timeout_delay 100
+#define BUFFER_SIZE 11
+#define FEATURES_PER_SAMPLE 2
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -57,12 +62,58 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-static uint8_t uart_rcv_buffer[20];
-
-uint8_t buffer[64];
-uint8_t data[3];  // MSB + LSB + CRC
+static uint8_t uart_rcv_buffer[20];  // ← dodaj to z powrotem
+uint8_t uart_tx_buffer[64];
+uint8_t data[3];
 uint8_t temp_cmd = 0xE3;
 uint8_t hum_cmd = 0xE5;
+
+typedef struct {
+    float data[BUFFER_SIZE * FEATURES_PER_SAMPLE];
+    uint8_t index;
+} RingBuffer;
+
+RingBuffer sensor_buffer = {0};  // zmieniona nazwa
+enum neai_state neai_state_var = NEAI_NOT_INITIALIZED;
+uint8_t neai_similarity = 0;
+
+void add_sensor_data(float temp, float hum)
+{
+    float sample[NEAI_INPUT_SIGNAL_LENGTH * NEAI_INPUT_AXIS_NUMBER] = { temp, hum };
+
+    if (sensor_buffer.index < BUFFER_SIZE)
+    {
+        neai_state_var = neai_anomalydetection_learn(sample);
+        sensor_buffer.index++;
+
+        if (neai_state_var == NEAI_LEARNING_IN_PROGRESS)
+        {
+            sprintf((char*)uart_tx_buffer, "LEARNING:%u/%u\r\n", sensor_buffer.index, BUFFER_SIZE);
+        }
+        else if (neai_state_var == NEAI_LEARNING_DONE)
+        {
+            sprintf((char*)uart_tx_buffer, "LEARNING_DONE\r\n");
+        }
+        else
+        {
+            sprintf((char*)uart_tx_buffer, "LEARN_ERR:%d\r\n", neai_state_var);
+        }
+    }
+    else
+    {
+        neai_state_var = neai_anomalydetection_detect(sample, &neai_similarity);
+        if (neai_state_var == NEAI_OK)
+        {
+            sprintf((char*)uart_tx_buffer, "ANOMALY:%u\r\n", neai_similarity);
+        }
+        else
+        {
+            sprintf((char*)uart_tx_buffer, "DETECT_ERR:%d\r\n", neai_state_var);
+        }
+    }
+
+    HAL_UART_Transmit(&huart2, uart_tx_buffer, strlen((char*)uart_tx_buffer), 100);
+}
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -110,9 +161,16 @@ int main(void)
   MX_USART2_UART_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
-HAL_TIM_Base_Start_IT(&htim1);
+  HAL_TIM_Base_Start_IT(&htim1);
 
-HAL_UART_Receive_IT(&huart2, uart_rcv_buffer, sizeof(uart_rcv_buffer));
+  HAL_UART_Receive_IT(&huart2, uart_rcv_buffer, sizeof(uart_rcv_buffer));
+
+  neai_state_var = neai_anomalydetection_init(false);
+  if (neai_state_var != NEAI_OK)
+  {
+      sprintf((char*)uart_tx_buffer, "NEAI_INIT_ERR:%d\r\n", neai_state_var);
+      HAL_UART_Transmit(&huart2, uart_tx_buffer, strlen((char*)uart_tx_buffer), 100);
+  }
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -136,8 +194,10 @@ HAL_UART_Receive_IT(&huart2, uart_rcv_buffer, sizeof(uart_rcv_buffer));
                     int raw_hum = ((data[0] << 8) | data[1]) & 0xFFFC;  // maskuj bity statusowe
                     float humidity = -6.0f + (125.0f * raw_hum / 65536.0f);
 
-                    sprintf((char*)buffer, "Temp: %.2f C, Hum: %.2f %%\r\n", temperature, humidity);
-                    HAL_UART_Transmit(&huart2, buffer, strlen((char*)buffer), 500);
+                    add_sensor_data(temperature, humidity);
+                    
+                    sprintf((char*)uart_tx_buffer, "Temp: %.2f *C, Humidity: %.2f %%\r\n", temperature, humidity);
+                    HAL_UART_Transmit(&huart2, uart_tx_buffer, strlen((char*)uart_tx_buffer), 500);
                 }
             }
         }

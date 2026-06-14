@@ -61,10 +61,19 @@ target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
 list(REMOVE_ITEM CMAKE_C_IMPLICIT_LINK_LIBRARIES ob)
 
 # Add linked libraries
-target_link_libraries(${CMAKE_PROJECT_NAME}
+target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC
     stm32cubemx
 
     # Add user defined libraries
 )
 target_link_options(${CMAKE_PROJECT_NAME} PRIVATE 
 -u _printf_float)
+
+# NanoEdgeAI library
+if(EXISTS "${CMAKE_SOURCE_DIR}/nanoedge_ai_lib/NanoEdgeAI.h")
+    target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/nanoedge_ai_lib)
+endif()
+
+if(EXISTS "${CMAKE_SOURCE_DIR}/nanoedge_ai_lib/libneai.a")
+    target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/nanoedge_ai_lib/libneai.a m)
+endif()

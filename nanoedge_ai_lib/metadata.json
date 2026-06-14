@@ -1,0 +1,72 @@
+{
+    "accelerators": [],
+    "algorithm_type": "on_board_training",
+    "commit": "HEAD",
+    "compilation_date": "2026-06-14T15:15:16.479913",
+    "compilation_flags": {
+        "float_abi": "hard",
+        "fshort_enums": true,
+        "short_wchar": false
+    },
+    "compilation_str": "{'compilation_dict':{'request_type':'library','api':{'env':'PROD','version':'v3'},'version':{'web_api':{'env':'PROD','version':'v3'},'local_api':{'version':'2026.03.05.0','platform':'win64'},'studio':'5.1.1'},'compilation_flags':{'float_abi':'hard','short_wchar':false,'fshort_enums':true,'use_knowledge':false},'mcu':'cortex-m4_st_stm32f4_nucleo-f446re','sensor':'','accelerators':[],'request_origin':'manual','algorithm_type':'on_board_training','lib_version':'v3_3938dd5','info':{},'class_names':'nominal,anomaly','results':[{'result_id':25,'combination':{'type':'anomaly_detection','name':'MML','params':{'factor_z_score':0.71,'factor_z_max':0.9400000000000001,'factor_cor':0.74,'category_correlation_threshold':0.32,'category_ratio_threshold':0.83,'ratio_cv_threshold':1.62,'z_score_norm':'abs','sensitivity':0.6,'max_categories':10,'tmp_dir_path':null},'preprocessing_chain':[]},'model':null,'performance':{'performance':{'score':1.0,'main_kpi':1.0},'memory_usage':{'estimated_ram':304,'estimated_flash':284,'estimated_flash_knowledge':null}},'learning_min_lines':11,'knowledge':'eNqtVE1v1DAQ_StVzijyd2ykHgocigQqF06rleUmZhspX9hOYbva_87YTrubbpE44FPseTN-8-Y5h2JydnJjbb1vh13x_mqzfXdV9GNjO9gcCt_uBtPpzg6wxRBq2t4Ovh3jnsC-HaY5aN8-2eWgN791bYLdja61PmYhOHUmtKOuH3V4cNY_jF0TI6UgKC1WCUkrLAD5w9RhdPpJ-3p0sSgqK6TiqiRnhJJKnVAAyQiW6yhORcUoOa8DhBJGUZXLCMwlZhGz8NzHOs52keOwYohKinMWkaxijIjzrNzUGi9JgktKMRJKccD7KFhoH9uwTxCRuRIqGZY8tdNZ4wYYACjXdboeAgCpiBSBvzUDKJf75EIhuIFUhNOK0AyIiue4QrhSlDDMEQK14u11lGmJrjohFUSH-yVKuTrdth5S7khxQrGAZPJy6TmMls-XrfVQMjWLFaook4KuVZ9Tp_h0mC2zORSJx8_ZJMABBHpcHNmYYOCjuGX-883XO_ylHz9q8o19-vVhr5vgb3Y3sK6vi2jWsJ-ihYq5HYKMJ_7BpJMN2Sa6Pfjfe9voYe6nvTbOmTik4GZ7jGZuk89ZiRFVkklwnwCHLT6HEMMlFyA4QhwTAfaLWT40_05dJ-r67jZ8_7_UF9tjKThnilABbwMRcXy2W868ty577bg9H83omhTYoG0ad3qMehhdHzmZe1-84Rad5fqbY15hs34lurTTUidb6iKW8ghPiSu_LWlvPrBXwOdfwqU5oYZ-UcGbfuqSIyOTeYIB2rXrj8c_ZJSSXQ==','knowledge_dat':null,'commit_tag_used':'v3_3938dd5'}],'data':{'nb_cols':2,'nb_lines':[[{'file_type':'anomaly','nb_lines':866},{'file_type':'nominal','nb_lines':725}]]},'toolchain_type':'gcc','only_emulators':false},'sign':76536,'license_key':'***'}",
+    "compile_emulators": true,
+    "compile_library": true,
+    "data": {
+        "nb_cols": 2,
+        "nb_lines": [
+            [
+                {
+                    "file_type": "anomaly",
+                    "nb_lines": 866
+                },
+                {
+                    "file_type": "nominal",
+                    "nb_lines": 725
+                }
+            ]
+        ]
+    },
+    "learning_min_lines": 11,
+    "lib_limited": false,
+    "library_id": "6a2ec58479141db4a2999c9f",
+    "library_md5sum": "bd60825dbfbc2f8a87bd504b5420bf63",
+    "mcu": "cortex-m4_st_stm32f4_nucleo-f446re",
+    "mcu_cpn": "NUCLEO-F446RE",
+    "mcu_display_name": "NUCLEO-F446RE - STMicroelectronics",
+    "mcu_family": "STM32F4 Series",
+    "mcu_group": "demo",
+    "mcu_type": "cortex-m4",
+    "mcu_vendor": "STMicroelectronics",
+    "optimization_info": {},
+    "performance": {
+        "memory_usage": {
+            "estimated_flash": 284,
+            "estimated_flash_knowledge": null,
+            "estimated_ram": 304
+        },
+        "performance": {
+            "main_kpi": 1.0,
+            "score": 1.0
+        }
+    },
+    "request_type": "library",
+    "sensor": "",
+    "studio_info": {
+        "local_api": {
+            "platform": "win64",
+            "version": "2026.03.05.0"
+        },
+        "studio": "5.1.1",
+        "web_api": {
+            "env": "PROD",
+            "version": "v3"
+        }
+    },
+    "toolchain_version": "arm-none-eabi-gcc (Arm GNU Toolchain 13.2.rel1 (Build arm-13.7)) 13.2.1 20231009",
+    "user_info": {
+        "company": "Poznan University Of Technology",
+        "email": "igokraj@gmail.com",
+        "first_name": "Igor",
+        "last_name": "Krajczynski"
+    }
+}
