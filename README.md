@@ -2,6 +2,9 @@
 
 A STM32F4 sensor project for temperature and humidity monitoring with integrated NanoEdge AI anomaly detection.
 
+<img width="767" height="564" alt="image" src="https://github.com/user-attachments/assets/68503a55-083c-457f-a80a-0b787d7a62d4" />
+
+
 ## Project Overview
 
 This project reads temperature and humidity from an HTU21D sensor over I2C, performs anomaly detection using the NanoEdge AI library, and reports results over UART. An on-board LED is used as a 2-second heartbeat indicator that matches the measurement interval.
